@@ -2,9 +2,14 @@
 .agents/
 .codex
 
+.DS_Store
+*~
+
 # Build logs and release artifacts
-build_output.log
+*.log
 *.iso
+*.img
+*.tar.gz
 
 # Generated build trees
 /build/
