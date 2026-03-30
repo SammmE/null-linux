@@ -1,0 +1,13 @@
+# Local Codex state
+.agents/
+.codex
+
+# Build logs and release artifacts
+build_output.log
+*.iso
+
+# Generated build trees
+/build/
+/initramfs-staging/
+/rootfs/
+/src/
