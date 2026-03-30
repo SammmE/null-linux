@@ -43,6 +43,10 @@ set_config() {
 set_config CONFIG_STATIC y
 set_config CONFIG_ASH y
 set_config CONFIG_FEATURE_INSTALLER y
+set_config CONFIG_MODPROBE y
+set_config CONFIG_FEATURE_MODPROBE_BLACKLIST y
+set_config CONFIG_MKE2FS y
+set_config CONFIG_SWITCH_ROOT y
 set_config CONFIG_TC n
 
 yes "" | make oldconfig

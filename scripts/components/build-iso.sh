@@ -54,6 +54,7 @@ for required_file in \
 done
 
 mkdir -p "$ROOTFS/EFI/BOOT"
+mkdir -p "$ROOTFS/usr/bin"
 
 cat > "$ROOTFS/boot/limine.conf" <<'EOF'
 timeout: 3
@@ -62,12 +63,13 @@ timeout: 3
     protocol: linux
     kernel_path: boot():/boot/vmlinuz
     module_path: boot():/boot/initramfs.cpio.gz
-    cmdline: root=/dev/sr0 rootfstype=iso9660 ro console=tty0 console=ttyS0
+    cmdline: root=/dev/sr0 rootfstype=iso9660 ro console=tty0 console=ttyS0,115200 loglevel=7
 EOF
 
 cp "$LIMINE_BIN_DIR/limine-bios.sys" "$ROOTFS/boot/"
 cp "$LIMINE_BIN_DIR/limine-bios-cd.bin" "$ROOTFS/boot/"
 cp "$LIMINE_BIN_DIR/limine-uefi-cd.bin" "$ROOTFS/boot/"
+cp "$LIMINE_BIN_DIR/limine" "$ROOTFS/usr/bin/"
 
 if [ -f "$LIMINE_BIN_DIR/BOOTX64.EFI" ]; then
     cp "$LIMINE_BIN_DIR/BOOTX64.EFI" "$ROOTFS/EFI/BOOT/"

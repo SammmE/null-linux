@@ -1,0 +1,8 @@
+root:x:0:
+daemon:x:1:
+tty:x:4:
+disk:x:6:
+wheel:x:10:root
+video:x:27:
+audio:x:29:
+nobody:x:65534:

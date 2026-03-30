@@ -4,7 +4,7 @@ set -e
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 . "$SCRIPT_DIR/../config.env"
 
-MODULE_NAMES="nvme ahci sd_mod virtio_blk ext4 fat vfat nls_cp437 nls_iso8859_1"
+MODULE_NAMES="nvme ahci sd_mod sr_mod cdrom virtio_blk ext4 isofs fat vfat nls_cp437 nls_iso8859_1"
 KERNEL_MODULES_ROOT="$ROOTFS/lib/modules"
 OUT_INITRAMFS="$ROOTFS/boot/initramfs.cpio.gz"
 KERNEL_RELEASE=""
@@ -90,6 +90,18 @@ done
 
 cat > "$INITRAMFS_STAGING/init" <<'EOF'
 #!/bin/sh
+set -eu
+
+log() {
+  echo "[initramfs] $*"
+}
+
+emergency_shell() {
+  log "$*"
+  log "Dropping to an emergency shell."
+  exec sh
+}
+
 # 1. Mount essential virtual filesystems
 mount -t devtmpfs devtmpfs /dev
 mount -t proc proc /proc
@@ -103,25 +115,49 @@ mdev -s
 
 # 3. Parse kernel command line for the "root=" parameter
 read -r cmdline < /proc/cmdline
+ROOT_FLAGS="ro"
+ROOT_TYPE=""
+ROOT_DEV=""
 for param in $cmdline; do
   case $param in
     root=*) ROOT_DEV=${param#root=} ;;
+    rootfstype=*) ROOT_TYPE=${param#rootfstype=} ;;
+    rw) ROOT_FLAGS="rw" ;;
+    ro) ROOT_FLAGS="ro" ;;
   esac
 done
 
-# 4. Load required modules (Example: ext4)
-# modprobe ext4
+if [ -z "$ROOT_DEV" ]; then
+  emergency_shell "No root= kernel parameter was provided."
+fi
+
+# 4. Load the small set of modules needed to find and mount the real root.
+for module in sr_mod cdrom iso9660 isofs ext4 fat vfat nls_cp437 nls_iso8859_1 ahci sd_mod virtio_blk nvme; do
+  modprobe "$module" 2>/dev/null || true
+done
 
 # 5. Wait for the root device to appear
+WAIT_SECS=0
 while [ ! -b "$ROOT_DEV" ]; do
-  echo "Waiting for $ROOT_DEV..."
+  log "Waiting for $ROOT_DEV..."
   sleep 1
+  WAIT_SECS=$((WAIT_SECS + 1))
+  if [ "$WAIT_SECS" -ge 30 ]; then
+    emergency_shell "Timed out waiting for block device $ROOT_DEV."
+  fi
 done
 
 # 6. Mount the real root filesystem
-mount -o ro "$ROOT_DEV" /mnt/root
+if [ -n "$ROOT_TYPE" ]; then
+  mount -t "$ROOT_TYPE" -o "$ROOT_FLAGS" "$ROOT_DEV" /mnt/root || \
+    emergency_shell "Failed to mount $ROOT_DEV as $ROOT_TYPE."
+else
+  mount -o "$ROOT_FLAGS" "$ROOT_DEV" /mnt/root || \
+    emergency_shell "Failed to mount $ROOT_DEV."
+fi
 
 # 7. Clean up and switch root
+log "Switching root to $ROOT_DEV."
 exec switch_root /mnt/root /sbin/init
 EOF
 
