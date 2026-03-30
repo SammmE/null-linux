@@ -37,3 +37,8 @@ chmod 0700 "$ROOTFS/root"
 
 ln -sfn /run "$ROOTFS/var/run"
 ln -sfn /proc/mounts "$ROOTFS/etc/mtab"
+
+if [ -d /workspace/overlay ]; then
+    # Copy tracked static files into the generated rootfs.
+    cp -a /workspace/overlay/. "$ROOTFS/"
+fi
