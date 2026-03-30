@@ -56,13 +56,13 @@ done
 mkdir -p "$ROOTFS/EFI/BOOT"
 
 cat > "$ROOTFS/boot/limine.conf" <<'EOF'
-TIMEOUT=3
+timeout: 3
 
-:Null Linux
-PROTOCOL=linux
-KERNEL_PATH=boot:///boot/vmlinuz
-MODULE_PATH=boot:///boot/initramfs.cpio.gz
-CMDLINE=console=tty0 console=ttyS0
+/Null Linux
+    protocol: linux
+    kernel_path: boot():/boot/vmlinuz
+    module_path: boot():/boot/initramfs.cpio.gz
+    cmdline: root=/dev/sr0 rootfstype=iso9660 ro console=tty0 console=ttyS0
 EOF
 
 cp "$LIMINE_BIN_DIR/limine-bios.sys" "$ROOTFS/boot/"

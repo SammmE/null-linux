@@ -10,10 +10,13 @@ mkdir -p \
     "$ROOTFS/bin" \
     "$ROOTFS/sbin" \
     "$ROOTFS/etc" \
+    "$ROOTFS/etc/init.d" \
     "$ROOTFS/etc/runit" \
     "$ROOTFS/etc/runit/runsvdir/default" \
     "$ROOTFS/etc/sv" \
     "$ROOTFS/dev" \
+    "$ROOTFS/dev/pts" \
+    "$ROOTFS/dev/shm" \
     "$ROOTFS/proc" \
     "$ROOTFS/sys" \
     "$ROOTFS/run" \
@@ -27,9 +30,10 @@ mkdir -p \
     "$ROOTFS/root"
 
 chmod 0755 "$ROOTFS"
-chmod 0755 "$ROOTFS/bin" "$ROOTFS/sbin" "$ROOTFS/etc" "$ROOTFS/etc/runit"
+chmod 0755 "$ROOTFS/bin" "$ROOTFS/sbin" "$ROOTFS/etc" "$ROOTFS/etc/init.d" "$ROOTFS/etc/runit"
 chmod 0755 "$ROOTFS/etc/runit/runsvdir/default" "$ROOTFS/etc/sv"
-chmod 0755 "$ROOTFS/dev" "$ROOTFS/run" "$ROOTFS/usr" "$ROOTFS/usr/bin" "$ROOTFS/usr/sbin"
+chmod 0755 "$ROOTFS/dev" "$ROOTFS/dev/pts" "$ROOTFS/run" "$ROOTFS/usr" "$ROOTFS/usr/bin" "$ROOTFS/usr/sbin"
+chmod 1777 "$ROOTFS/dev/shm"
 chmod 0755 "$ROOTFS/var" "$ROOTFS/var/log" "$ROOTFS/mnt"
 chmod 0555 "$ROOTFS/proc" "$ROOTFS/sys"
 chmod 1777 "$ROOTFS/tmp"

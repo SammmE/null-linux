@@ -56,7 +56,16 @@ mkdir -p \
     "$ROOTFS/boot"
 
 cp "$ROOTFS/bin/busybox" "$INITRAMFS_STAGING/bin/busybox"
-"$INITRAMFS_STAGING/bin/busybox" --install -s "$INITRAMFS_STAGING/bin"
+(
+    cd "$INITRAMFS_STAGING/bin"
+    ./busybox --install -s .
+
+    # BusyBox may emit absolute symlinks based on argv[0]; rewrite them so the
+    # initramfs stays self-contained after it is unpacked at /.
+    find . -maxdepth 1 -type l ! -name busybox | while IFS= read -r applet; do
+        ln -snf busybox "$applet"
+    done
+)
 
 for module in $MODULE_NAMES; do
     while IFS= read -r module_path; do
@@ -87,7 +96,9 @@ mount -t proc proc /proc
 mount -t sysfs sysfs /sys
 
 # 2. Populate /dev using BusyBox mdev
-echo /bin/mdev > /proc/sys/kernel/hotplug
+if [ -w /proc/sys/kernel/hotplug ]; then
+  echo /bin/mdev > /proc/sys/kernel/hotplug
+fi
 mdev -s
 
 # 3. Parse kernel command line for the "root=" parameter
